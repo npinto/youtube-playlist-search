@@ -2,7 +2,7 @@
 
 A privacy-focused web app to search across all your YouTube playlists. No server needed - everything runs in your browser.
 
-**Live App:** _(GitHub Pages URL will be here after deployment)_
+**Live App:** https://npinto.github.io/youtube-playlist-search/
 
 ## Features
 
