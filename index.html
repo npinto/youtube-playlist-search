@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Your YouTube Playlists</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="YT Search">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .danger-btn {
+            background: #e53e3e;
+        }
+
+        .danger-btn:hover {
+            background: #c53030;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], input[type="search"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="text"]:focus, input[type="search"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select {
+            padding: 12px;
+            padding-right: 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            background: white;
+            min-width: 140px;
+            max-width: 200px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23667eea" stroke-width="2"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s ease;
+        }
+
+        .result-item:hover {
+            background: #f7fafc;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-title {
+            color: #2d3748;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .video-title:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+
+        .playlist-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .video-meta {
+            margin: 5px 0;
+        }
+
+        .channel-name {
+            color: #718096;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a.channel-name:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+
+        .video-date {
+            color: #a0aec0;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .video-date::before {
+            content: "•";
+            margin-right: 10px;
+        }
+
+        .playlist-badge {
+            display: inline-block;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .video-counter {
+            margin: 20px 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .video-counter-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .video-counter-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22d3ee);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+
+        .progress-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-buttons {
+                justify-content: stretch;
+            }
+
+            button {
+                flex: 1;
+            }
+
+            .search-container {
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            input[type="text"], input[type="search"] {
+                flex: 1;
+                min-width: 0;
+                width: auto;
+            }
+            
+            select {
+                flex: 0 0 auto;
+                width: auto;
+                min-width: 120px;
+                max-width: 40%;
+            }
+            
+            .progress-stats {
+                gap: 15px;
+            }
+            
+            .stat-value {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🎵 Search Your YouTube Playlists</h1>
+                <div class="header-buttons">
+                    <button id="authBtn" onclick="handleAuth()">Sign In</button>
+                    <button id="refreshBtn" onclick="refreshData()" style="display: none;">Refresh Data</button>
+                    <button id="clearBtn" class="danger-btn" onclick="clearAllData()" style="display: none;">Clear Data</button>
+                </div>
+            </div>
+        </header>
+
+        <div id="errorContainer"></div>
+
+        <div class="search-section" id="searchSection" style="display: none;">
+            <div class="search-container">
+                <input type="search" id="searchInput" placeholder="Search videos..." enterkeyhint="search" />
+                <select id="playlistFilter">
+                    <option value="">All Playlists</option>
+                </select>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>📹 Videos:</span>
+                    <strong id="videoCount">0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>📝 Playlists:</span>
+                    <strong id="playlistCount">0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>🔄 Last Updated:</span>
+                    <strong id="lastUpdated">Never</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <div class="empty-state">
+                <h3>No videos found</h3>
+                <p>Try searching for something else</p>
+            </div>
+        </div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p id="loadingText">Loading...</p>
+            <div id="progressContainer" style="display: none;">
+                <div class="video-counter">
+                    <div class="video-counter-number" id="videoCounter">0</div>
+                    <div class="video-counter-label">videos found</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <span class="stat-label">Playlists:</span>
+                        <span class="stat-value" id="playlistStats">0/0</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="stat-label">Pages:</span>
+                        <span class="stat-value" id="pageStats">0</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="stat-label">Speed:</span>
+                        <span class="stat-value" id="speedStats">0/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <h2>🔒 Privacy Notice</h2>
+            <p><strong>This app values your privacy:</strong></p>
+            <p>✓ All data stays in your browser (IndexedDB)</p>
+            <p>✓ No data is sent to any server</p>
+            <p>✓ OAuth tokens never leave your device</p>
+            <p>✓ You can clear all data at any time</p>
+            <p>✓ Open source and transparent</p>
+            <p>By continuing, you agree to use this app for personal use only with your own YouTube account.</p>
+            <div class="modal-buttons">
+                <button onclick="acceptPrivacy()">I Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CLIENT_ID = '727290163233-8c2q6fug7fus30vq1i1ntc9p8ipga1h9.apps.googleusercontent.com';
+        // Use the exact current URL as redirect URI, removing any hash or query params
+        const REDIRECT_URI = window.location.href.split('#')[0].split('?')[0];
+        const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
+        const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+        const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+        const API_BASE = 'https://www.googleapis.com/youtube/v3';
+        
+        // IndexedDB Configuration
+        const DB_NAME = 'YouTubePlaylistSearch';
+        const DB_VERSION = 1;
+        let db = null;
+        
+        // State
+        let accessToken = null;
+        let allVideos = [];
+        let allPlaylists = [];
+        let searchTimeout = null;
+        let deferredPrompt = null;
+
+        // Handle PWA install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Optionally show install button
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            // Check if button already exists
+            if (document.getElementById('installBtn')) return;
+            
+            const headerButtons = document.querySelector('.header-buttons');
+            if (headerButtons && deferredPrompt) {
+                const installBtn = document.createElement('button');
+                installBtn.id = 'installBtn';
+                installBtn.textContent = '📱 Install App';
+                installBtn.style.background = '#48bb78';
+                installBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log(`User response to install prompt: ${outcome}`);
+                        deferredPrompt = null;
+                        installBtn.style.display = 'none';
+                    }
+                });
+                headerButtons.appendChild(installBtn);
+            }
+        }
+
+        // Initialize app
+        async function init() {
+            // Register service worker for PWA support
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('./sw.js');
+                    console.log('Service Worker registered:', registration.scope);
+                } catch (error) {
+                    console.log('Service Worker registration failed:', error);
+                }
+            }
+            
+            // Check if first time user
+            if (!localStorage.getItem('privacyAccepted')) {
+                document.getElementById('privacyModal').classList.add('show');
+                return;
+            }
+
+            // Initialize database
+            await initDB();
+            
+            // Check for OAuth callback
+            await handleOAuthCallback();
+            
+            // Load cached data
+            await loadCachedData();
+            
+            // Update UI
+            updateAuthUI();
+        }
+
+        // IndexedDB functions
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Create stores
+                    if (!db.objectStoreNames.contains('playlists')) {
+                        const playlistStore = db.createObjectStore('playlists', { keyPath: 'id' });
+                        playlistStore.createIndex('title', 'title', { unique: false });
+                    }
+                    
+                    if (!db.objectStoreNames.contains('videos')) {
+                        const videoStore = db.createObjectStore('videos', { keyPath: 'id' });
+                        videoStore.createIndex('playlistId', 'playlistId', { unique: false });
+                        videoStore.createIndex('title', 'title', { unique: false });
+                    }
+                    
+                    if (!db.objectStoreNames.contains('auth')) {
+                        db.createObjectStore('auth', { keyPath: 'key' });
+                    }
+                    
+                    if (!db.objectStoreNames.contains('metadata')) {
+                        db.createObjectStore('metadata', { keyPath: 'key' });
+                    }
+                };
+            });
+        }
+
+        async function saveToStore(storeName, data) {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            
+            if (Array.isArray(data)) {
+                for (const item of data) {
+                    store.put(item);
+                }
+            } else {
+                store.put(data);
+            }
+            
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        async function getAllFromStore(storeName) {
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function getFromStore(storeName, key) {
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.get(key);
+            
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function clearStore(storeName) {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            store.clear();
+            
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        // OAuth PKCE functions
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            const randomValues = new Uint8Array(length);
+            crypto.getRandomValues(randomValues);
+            for (let i = 0; i < length; i++) {
+                result += chars[randomValues[i] % chars.length];
+            }
+            return result;
+        }
+
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        }
+
+        async function startOAuthFlow() {
+            console.log('Starting OAuth flow with redirect URI:', REDIRECT_URI);
+            
+            // Debug mode - show redirect URI if URL has ?debug
+            if (window.location.search.includes('debug')) {
+                alert(`Redirect URI: ${REDIRECT_URI}\n\nCurrent URL: ${window.location.href}\n\nIf this doesn't match Google Console, add it.`);
+                return;
+            }
+            
+            // Use implicit flow for client-side only apps
+            const params = new URLSearchParams({
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                response_type: 'token',  // Changed from 'code' to 'token'
+                scope: SCOPE,
+                access_type: 'online',
+                prompt: 'select_account'
+            });
+            
+            const authUrl = `${AUTH_ENDPOINT}?${params}`;
+            console.log('Auth URL:', authUrl);
+            window.location.href = authUrl;
+        }
+
+        async function handleOAuthCallback() {
+            // Check for token in URL hash (implicit flow)
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const token = hashParams.get('access_token');
+            
+            if (!token) {
+                // Check for error in URL
+                const error = hashParams.get('error');
+                if (error) {
+                    console.error('OAuth error:', error);
+                }
+                return;
+            }
+            
+            // Clear URL hash
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            try {
+                showLoading('Authenticating...');
+                
+                accessToken = token;
+                const expiresIn = parseInt(hashParams.get('expires_in') || '3600');
+                
+                // Store token
+                await saveToStore('auth', {
+                    key: 'access_token',
+                    value: accessToken,
+                    expires_at: Date.now() + (expiresIn * 1000)
+                });
+                
+                // Fetch initial data
+                await fetchAllData();
+                
+            } catch (error) {
+                showError('Authentication failed: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // YouTube API functions
+        async function fetchAllData() {
+            try {
+                showLoading('Fetching playlists...');
+                
+                // Get playlists
+                const playlists = await fetchPlaylists();
+                await saveToStore('playlists', playlists);
+                
+                // Track playlist completion
+                const playlistStatus = {};
+                const totalPlaylists = playlists.length;
+                let completedPlaylists = 0;
+                
+                // Create work queue of all pages to fetch
+                const workQueue = [];
+                for (const playlist of playlists) {
+                    playlistStatus[playlist.id] = {
+                        name: playlist.title,
+                        pagesCompleted: 0,
+                        totalPages: 1, // Start with estimate of 1
+                        isComplete: false,
+                        videoCount: 0
+                    };
+                    workQueue.push({
+                        playlist,
+                        pageToken: null,
+                        pageNumber: 1
+                    });
+                }
+                
+                // Process work queue in parallel batches
+                const CONCURRENT_REQUESTS = 10;
+                let totalVideos = 0;
+                let totalPagesProcessed = 0;
+                let estimatedTotalPages = playlists.length * 3; // Estimate 3 pages per playlist initially
+                let startTime = Date.now();
+                let lastUpdateTime = Date.now();
+                let lastVideoCount = 0;
+                
+                // Show progress UI
+                showProgressDetailed(totalPlaylists);
+                
+                while (workQueue.length > 0) {
+                    // Take up to CONCURRENT_REQUESTS items from the queue
+                    const batch = workQueue.splice(0, Math.min(CONCURRENT_REQUESTS, workQueue.length));
+                    
+                    // Update progress
+                    updateDetailedProgress(
+                        completedPlaylists,
+                        totalPlaylists,
+                        totalVideos,
+                        totalPagesProcessed,
+                        estimatedTotalPages,
+                        lastVideoCount,
+                        lastUpdateTime
+                    );
+                    lastUpdateTime = Date.now();
+                    lastVideoCount = totalVideos;
+                    
+                    // Process batch in parallel
+                    const batchPromises = batch.map(async (work) => {
+                        try {
+                            const response = await fetchPlaylistPage(work.playlist.id, work.pageToken);
+                            
+                            if (response.videos.length > 0) {
+                                const videosWithPlaylist = response.videos.map(video => ({
+                                    ...video,
+                                    playlistId: work.playlist.id,
+                                    playlistTitle: work.playlist.title
+                                }));
+                                
+                                // Save videos immediately
+                                await saveToStore('videos', videosWithPlaylist);
+                                
+                                return {
+                                    success: true,
+                                    videoCount: response.videos.length,
+                                    nextPageToken: response.nextPageToken,
+                                    playlist: work.playlist,
+                                    pageNumber: work.pageNumber
+                                };
+                            }
+                            
+                            return { 
+                                success: true, 
+                                videoCount: 0, 
+                                nextPageToken: null,
+                                playlist: work.playlist,
+                                pageNumber: work.pageNumber
+                            };
+                            
+                        } catch (error) {
+                            console.warn(`Failed to fetch page for playlist ${work.playlist.title}:`, error);
+                            return { 
+                                success: false, 
+                                videoCount: 0, 
+                                nextPageToken: null,
+                                playlist: work.playlist,
+                                pageNumber: work.pageNumber
+                            };
+                        }
+                    });
+                    
+                    const results = await Promise.all(batchPromises);
+                    
+                    // Process results and add more work if needed
+                    for (const result of results) {
+                        const status = playlistStatus[result.playlist.id];
+                        
+                        if (result.success) {
+                            totalVideos += result.videoCount;
+                            status.videoCount += result.videoCount;
+                            status.pagesCompleted++;
+                            totalPagesProcessed++;
+                            
+                            // If there's a next page, add it to the work queue
+                            if (result.nextPageToken) {
+                                workQueue.push({
+                                    playlist: result.playlist,
+                                    pageToken: result.nextPageToken,
+                                    pageNumber: result.pageNumber + 1
+                                });
+                                
+                                // Update our estimate of total pages for this playlist
+                                status.totalPages = Math.max(status.totalPages, result.pageNumber + 1);
+                                
+                                // Update global estimate
+                                const avgPagesPerPlaylist = totalPagesProcessed / Math.max(completedPlaylists, 1);
+                                estimatedTotalPages = Math.max(
+                                    totalPagesProcessed + workQueue.length,
+                                    Math.ceil(totalPlaylists * avgPagesPerPlaylist)
+                                );
+                            } else {
+                                // Playlist is complete
+                                if (!status.isComplete) {
+                                    status.isComplete = true;
+                                    completedPlaylists++;
+                                }
+                            }
+                        } else {
+                            // Mark as complete even on failure to avoid hanging
+                            if (!status.isComplete) {
+                                status.isComplete = true;
+                                completedPlaylists++;
+                            }
+                        }
+                    }
+                }
+                
+                // Update metadata
+                await saveToStore('metadata', {
+                    key: 'lastUpdated',
+                    value: new Date().toISOString()
+                });
+                
+                showSuccess(`Fetched ${completedPlaylists} playlists with ${totalVideos} videos`);
+                await loadCachedData();
+                
+            } catch (error) {
+                showError('Failed to fetch data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Fetch a single page of playlist items
+        async function fetchPlaylistPage(playlistId, pageToken = null) {
+            const params = new URLSearchParams({
+                part: 'snippet',
+                playlistId: playlistId,
+                maxResults: '50'
+            });
+            
+            if (pageToken) {
+                params.append('pageToken', pageToken);
+            }
+            
+            const response = await fetch(`${API_BASE}/playlistItems?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 403) {
+                    console.warn(`Cannot access playlist ${playlistId}`);
+                    return { videos: [], nextPageToken: null };
+                }
+                throw new Error('Failed to fetch playlist items');
+            }
+            
+            const data = await response.json();
+            const videos = data.items
+                .filter(item => item.snippet.resourceId.kind === 'youtube#video')
+                .map(item => ({
+                    id: `${playlistId}_${item.snippet.resourceId.videoId}`,
+                    videoId: item.snippet.resourceId.videoId,
+                    title: item.snippet.title,
+                    description: item.snippet.description,
+                    thumbnail: item.snippet.thumbnails?.default?.url,
+                    position: item.snippet.position,
+                    channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || 'Unknown Channel',
+                    channelId: item.snippet.videoOwnerChannelId || item.snippet.channelId || null,
+                    publishedAt: item.snippet.publishedAt || null
+                }));
+            
+            return {
+                videos,
+                nextPageToken: data.nextPageToken || null
+            };
+        }
+
+        async function fetchPlaylists(pageToken = null) {
+            const params = new URLSearchParams({
+                part: 'snippet',
+                mine: 'true',
+                maxResults: '50'
+            });
+            
+            if (pageToken) {
+                params.append('pageToken', pageToken);
+            }
+            
+            const response = await fetch(`${API_BASE}/playlists?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Token expired
+                    await handleSignOut();
+                    throw new Error('Session expired. Please sign in again.');
+                }
+                throw new Error('Failed to fetch playlists');
+            }
+            
+            const data = await response.json();
+            const playlists = data.items.map(item => ({
+                id: item.id,
+                title: item.snippet.title,
+                description: item.snippet.description,
+                thumbnail: item.snippet.thumbnails?.default?.url
+            }));
+            
+            // Handle pagination
+            if (data.nextPageToken) {
+                const nextPlaylists = await fetchPlaylists(data.nextPageToken);
+                return [...playlists, ...nextPlaylists];
+            }
+            
+            return playlists;
+        }
+
+        async function fetchPlaylistItems(playlistId, pageToken = null) {
+            const params = new URLSearchParams({
+                part: 'snippet',
+                playlistId: playlistId,
+                maxResults: '50'
+            });
+            
+            if (pageToken) {
+                params.append('pageToken', pageToken);
+            }
+            
+            const response = await fetch(`${API_BASE}/playlistItems?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 403) {
+                    // Private playlist or quota exceeded
+                    console.warn(`Cannot access playlist ${playlistId}`);
+                    return [];
+                }
+                throw new Error('Failed to fetch playlist items');
+            }
+            
+            const data = await response.json();
+            const videos = data.items
+                .filter(item => item.snippet.resourceId.kind === 'youtube#video')
+                .map(item => ({
+                    id: `${playlistId}_${item.snippet.resourceId.videoId}`,
+                    videoId: item.snippet.resourceId.videoId,
+                    title: item.snippet.title,
+                    description: item.snippet.description,
+                    thumbnail: item.snippet.thumbnails?.default?.url,
+                    position: item.snippet.position,
+                    channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || 'Unknown Channel',
+                    channelId: item.snippet.videoOwnerChannelId || item.snippet.channelId || null,
+                    publishedAt: item.snippet.publishedAt || null
+                }));
+            
+            // Handle pagination
+            if (data.nextPageToken) {
+                const nextVideos = await fetchPlaylistItems(playlistId, data.nextPageToken);
+                return [...videos, ...nextVideos];
+            }
+            
+            return videos;
+        }
+
+        // Data management
+        async function loadCachedData() {
+            try {
+                // Load auth token
+                const authData = await getFromStore('auth', 'access_token');
+                if (authData && authData.expires_at > Date.now()) {
+                    accessToken = authData.value;
+                }
+                
+                // Load playlists and videos
+                allPlaylists = await getAllFromStore('playlists');
+                allVideos = await getAllFromStore('videos');
+                
+                // Update UI
+                updateStats();
+                updatePlaylistFilter();
+                
+                if (accessToken) {
+                    document.getElementById('searchSection').style.display = 'block';
+                    document.getElementById('results').style.display = 'block';
+                    performSearch();
+                }
+                
+            } catch (error) {
+                console.error('Failed to load cached data:', error);
+            }
+        }
+
+        async function refreshData() {
+            if (!accessToken) {
+                showError('Please sign in first');
+                return;
+            }
+            
+            await fetchAllData();
+        }
+
+        async function clearAllData() {
+            if (!confirm('This will delete all cached data and sign you out. Continue?')) {
+                return;
+            }
+            
+            try {
+                await clearStore('playlists');
+                await clearStore('videos');
+                await clearStore('auth');
+                await clearStore('metadata');
+                
+                accessToken = null;
+                allVideos = [];
+                allPlaylists = [];
+                
+                updateAuthUI();
+                document.getElementById('searchSection').style.display = 'none';
+                document.getElementById('results').style.display = 'none';
+                
+                showSuccess('All data cleared');
+            } catch (error) {
+                showError('Failed to clear data: ' + error.message);
+            }
+        }
+
+        // Search functionality
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedPlaylist = document.getElementById('playlistFilter').value;
+            
+            let filteredVideos = allVideos;
+            
+            // Filter by playlist
+            if (selectedPlaylist) {
+                filteredVideos = filteredVideos.filter(video => video.playlistId === selectedPlaylist);
+            }
+            
+            // Filter by search term
+            if (searchTerm) {
+                filteredVideos = filteredVideos.filter(video => 
+                    video.title.toLowerCase().includes(searchTerm) ||
+                    (video.description && video.description.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            // Sort by title
+            filteredVideos.sort((a, b) => a.title.localeCompare(b.title));
+            
+            // Display results
+            displayResults(filteredVideos);
+        }
+
+        function displayResults(videos) {
+            const resultsContainer = document.getElementById('results');
+            
+            if (videos.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No videos found</h3>
+                        <p>Try searching for something else</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group videos by videoId to combine duplicate entries
+            const groupedVideos = {};
+            videos.forEach(video => {
+                if (!groupedVideos[video.videoId]) {
+                    groupedVideos[video.videoId] = {
+                        ...video,
+                        playlists: []
+                    };
+                }
+                if (video.playlistTitle) {
+                    groupedVideos[video.videoId].playlists.push(video.playlistTitle);
+                }
+                // Keep the channel title and ID from the first occurrence
+                if (video.channelTitle && !groupedVideos[video.videoId].channelTitle) {
+                    groupedVideos[video.videoId].channelTitle = video.channelTitle;
+                }
+                if (video.channelId && !groupedVideos[video.videoId].channelId) {
+                    groupedVideos[video.videoId].channelId = video.channelId;
+                }
+            });
+            
+            // Convert to array and sort by date (newest first)
+            const uniqueVideos = Object.values(groupedVideos);
+            uniqueVideos.sort((a, b) => {
+                // Sort by publishedAt date, newest first
+                if (a.publishedAt && b.publishedAt) {
+                    return new Date(b.publishedAt) - new Date(a.publishedAt);
+                }
+                // If one has no date, put it at the end
+                if (!a.publishedAt) return 1;
+                if (!b.publishedAt) return -1;
+                return 0;
+            });
+            
+            // Limit to 100 results for performance
+            const displayVideos = uniqueVideos.slice(0, 100);
+            
+            resultsContainer.innerHTML = displayVideos.map(video => `
+                <div class="result-item">
+                    <div class="video-info">
+                        <a href="${getVideoUrl(video.videoId)}" 
+                           target="_blank" 
+                           class="video-title"
+                           onclick="handleVideoClick(event, '${video.videoId}')">
+                            ${escapeHtml(video.title)}
+                        </a>
+                        <div class="video-meta">
+                            ${video.channelId ? 
+                                `<a href="https://www.youtube.com/channel/${video.channelId}" 
+                                    target="_blank" 
+                                    class="channel-name">
+                                    ${escapeHtml(video.channelTitle || 'Unknown Channel')}
+                                </a>` :
+                                `<span class="channel-name">${escapeHtml(video.channelTitle || 'Unknown Channel')}</span>`
+                            }
+                            ${video.publishedAt ? 
+                                `<span class="video-date">${formatDate(video.publishedAt)}</span>` : ''
+                            }
+                        </div>
+                        <div class="playlist-badges">
+                            ${video.playlists.map(playlist => 
+                                `<span class="playlist-badge" style="background: ${getPlaylistColor(playlist)}">${escapeHtml(playlist)}</span>`
+                            ).join(' ')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (uniqueVideos.length > 100) {
+                resultsContainer.innerHTML += `
+                    <div class="loading">
+                        <p>Showing first 100 results of ${uniqueVideos.length} unique videos</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getVideoUrl(videoId) {
+            return `https://www.youtube.com/watch?v=${videoId}`;
+        }
+
+        function handleVideoClick(event, videoId) {
+            // Check if mobile
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                event.preventDefault();
+                
+                // Try deep link first
+                const deepLink = `youtube://watch?v=${videoId}`;
+                const webLink = getVideoUrl(videoId);
+                
+                // Try to open deep link
+                window.location.href = deepLink;
+                
+                // Fallback to web link after a delay
+                setTimeout(() => {
+                    window.open(webLink, '_blank');
+                }, 1000);
+            }
+        }
+
+        // UI functions
+        function updateAuthUI() {
+            const authBtn = document.getElementById('authBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            if (accessToken) {
+                authBtn.textContent = 'Sign Out';
+                authBtn.onclick = handleSignOut;
+                refreshBtn.style.display = 'inline-block';
+                clearBtn.style.display = 'inline-block';
+            } else {
+                authBtn.textContent = 'Sign In';
+                authBtn.onclick = handleAuth;
+                refreshBtn.style.display = 'none';
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        function updateStats() {
+            // Count unique videos
+            const uniqueVideoIds = new Set(allVideos.map(v => v.videoId));
+            const uniqueCount = uniqueVideoIds.size;
+            const totalCount = allVideos.length;
+            
+            // Show both unique and total if there are duplicates
+            if (uniqueCount < totalCount) {
+                document.getElementById('videoCount').textContent = `${uniqueCount} (${totalCount} total)`;
+            } else {
+                document.getElementById('videoCount').textContent = uniqueCount;
+            }
+            
+            document.getElementById('playlistCount').textContent = allPlaylists.length;
+            
+            // Update last updated
+            getFromStore('metadata', 'lastUpdated').then(data => {
+                if (data) {
+                    document.getElementById('lastUpdated').textContent = formatDate(data.value);
+                }
+            });
+        }
+
+        function updatePlaylistFilter() {
+            const select = document.getElementById('playlistFilter');
+            select.innerHTML = '<option value="">All Playlists</option>';
+            
+            allPlaylists.forEach(playlist => {
+                const option = document.createElement('option');
+                option.value = playlist.id;
+                option.textContent = playlist.title;
+                select.appendChild(option);
+            });
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function showProgressDetailed(totalPlaylists) {
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'Fetching your YouTube playlists...';
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('playlistStats').textContent = `0/${totalPlaylists}`;
+        }
+
+        function updateDetailedProgress(completedPlaylists, totalPlaylists, videos, pagesProcessed, estimatedPages, lastVideos, lastTime) {
+            // Calculate progress using a weighted average
+            // 50% weight to playlist completion, 50% to page completion
+            const playlistProgress = totalPlaylists > 0 ? (completedPlaylists / totalPlaylists) * 50 : 0;
+            const pageProgress = estimatedPages > 0 ? (pagesProcessed / estimatedPages) * 50 : 0;
+            const totalProgress = Math.min(playlistProgress + pageProgress, 99); // Never show 100% until actually done
+            
+            // Smooth the progress bar to avoid jumps
+            const currentWidth = parseFloat(document.getElementById('progressBar').style.width) || 0;
+            const targetWidth = totalProgress;
+            const smoothedWidth = currentWidth + (targetWidth - currentWidth) * 0.3; // Smooth transition
+            document.getElementById('progressBar').style.width = smoothedWidth + '%';
+            
+            // Update playlist stats
+            document.getElementById('playlistStats').textContent = `${completedPlaylists}/${totalPlaylists}`;
+            
+            // Animate video counter with smooth counting effect
+            const videoCounterEl = document.getElementById('videoCounter');
+            const currentCount = parseInt(videoCounterEl.textContent.replace(/,/g, '')) || 0;
+            if (videos > currentCount) {
+                // Animate the number change
+                animateCounter(videoCounterEl, currentCount, videos, 300);
+            }
+            
+            // Update pages processed
+            document.getElementById('pageStats').textContent = pagesProcessed.toLocaleString();
+            
+            // Calculate speed (videos per second)
+            const currentTime = Date.now();
+            const timeDiff = (currentTime - lastTime) / 1000; // in seconds
+            const videosDiff = videos - lastVideos;
+            const speed = timeDiff > 0 ? Math.round(videosDiff / timeDiff) : 0;
+            document.getElementById('speedStats').textContent = speed > 0 ? `${speed}/s` : 'Starting...';
+            
+            // Update main text with better formatting
+            const percentComplete = Math.round(smoothedWidth);
+            if (completedPlaylists < totalPlaylists) {
+                document.getElementById('loadingText').textContent = 
+                    `Loading playlists... ${percentComplete}%`;
+            } else {
+                document.getElementById('loadingText').textContent = 
+                    `Finalizing... ${percentComplete}%`;
+            }
+        }
+        
+        function animateCounter(element, start, end, duration) {
+            const range = end - start;
+            const startTime = Date.now();
+            
+            const updateCounter = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutQuad = progress * (2 - progress);
+                const current = Math.floor(start + range * easeOutQuad);
+                
+                element.textContent = current.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    element.textContent = end.toLocaleString();
+                    // Add a subtle scale effect when number changes
+                    element.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        element.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            };
+            
+            requestAnimationFrame(updateCounter);
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="error-message">${escapeHtml(message)}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            // For now, just log it
+            console.log('Success:', message);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Format YYYY-MM-DD
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const fullDate = `${year}-${month}-${day}`;
+            
+            let relativeDate;
+            if (diffDays === 0) {
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                if (diffHours === 0) {
+                    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                    if (diffMinutes === 0) relativeDate = 'Just now';
+                    else relativeDate = `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+                } else {
+                    relativeDate = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+                }
+            } else if (diffDays === 1) {
+                relativeDate = 'Yesterday';
+            } else if (diffDays < 7) {
+                relativeDate = `${diffDays} days ago`;
+            } else if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                relativeDate = `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
+            } else if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                relativeDate = `${months} month${months !== 1 ? 's' : ''} ago`;
+            } else {
+                const years = Math.floor(diffDays / 365);
+                relativeDate = `${years} year${years !== 1 ? 's' : ''} ago`;
+            }
+            
+            return `${relativeDate} (${fullDate})`;
+        }
+
+        function getPlaylistColor(playlistName) {
+            // Generate a consistent color for each playlist name
+            const colors = [
+                'linear-gradient(135deg, #667eea, #764ba2)',
+                'linear-gradient(135deg, #f093fb, #f5576c)',
+                'linear-gradient(135deg, #4facfe, #00f2fe)',
+                'linear-gradient(135deg, #43e97b, #38f9d7)',
+                'linear-gradient(135deg, #fa709a, #fee140)',
+                'linear-gradient(135deg, #30cfd0, #330867)',
+                'linear-gradient(135deg, #a8edea, #fed6e3)',
+                'linear-gradient(135deg, #ff9a9e, #fecfef)',
+                'linear-gradient(135deg, #fbc2eb, #a6c1ee)',
+                'linear-gradient(135deg, #fdcbf1, #e6dee9)'
+            ];
+            
+            // Simple hash function to consistently map playlist names to colors
+            let hash = 0;
+            for (let i = 0; i < playlistName.length; i++) {
+                hash = ((hash << 5) - hash) + playlistName.charCodeAt(i);
+                hash = hash & hash;
+            }
+            
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Event handlers
+        async function handleAuth() {
+            if (accessToken) {
+                await handleSignOut();
+            } else {
+                if (!CLIENT_ID || CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
+                    showError('Please configure CLIENT_ID in the source code first');
+                    return;
+                }
+                await startOAuthFlow();
+            }
+        }
+
+        async function handleSignOut() {
+            accessToken = null;
+            await clearStore('auth');
+            updateAuthUI();
+            document.getElementById('searchSection').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function acceptPrivacy() {
+            localStorage.setItem('privacyAccepted', 'true');
+            document.getElementById('privacyModal').classList.remove('show');
+            init();
+        }
+
+        // Search input debouncing - iOS PWA fix
+        function attachSearchListeners() {
+            const searchInput = document.getElementById('searchInput');
+            const playlistFilter = document.getElementById('playlistFilter');
+            
+            if (searchInput) {
+                // Use multiple event types for iOS PWA compatibility
+                ['input', 'keyup', 'change', 'search'].forEach(eventType => {
+                    searchInput.addEventListener(eventType, (e) => {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(() => {
+                            performSearch();
+                        }, 300);
+                    });
+                });
+                
+                // Force search on blur (when keyboard closes on iOS)
+                searchInput.addEventListener('blur', () => {
+                    performSearch();
+                });
+            }
+            
+            if (playlistFilter) {
+                playlistFilter.addEventListener('change', performSearch);
+            }
+        }
+        
+        // Attach listeners after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachSearchListeners);
+        } else {
+            attachSearchListeners();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
